@@ -27,15 +27,8 @@ export TOPDIR
 
 TARGET := robotic
 
-obj-y += main.o
+obj-y += main.o pwm.o sys.o
 #obj-y += display/
-#obj-y += encoding/
-#obj-y += fonts/
-#obj-y += input/
-#obj-y += debug/
-#obj-y += render/
-#obj-y += page/
-#obj-y += file/
 
 all : 
 	make -C ./ -f $(TOPDIR)/Makefile.build
