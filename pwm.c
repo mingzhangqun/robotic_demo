@@ -3,8 +3,7 @@
 
 #define PATH_MEM        "/dev/mem"
 
-static uint32_t *pru_addr = MAP_FAILED;
-
+static uint32_t *pru = MAP_FAILED;
 
 static const uint32_t pwms[PWM_MAX_CHS][2] = {
     {0, 2}, // 0_5
@@ -23,6 +22,9 @@ static const uint32_t pwms[PWM_MAX_CHS][2] = {
     {0, 1}, // 0_4
 };
 
+#define ASSERT_PRU(pru)     if (MAP_FAILED == pru) {printf("Invalid pru_addr!\n"); return -1;}
+#define PWM_CHS(i)          (pwms[i][0]?(pwm_t*)(pru+(PWM1_OFFSET>>2)):(pwm_t*)(pru+(PWM0_OFFSET>>2)))[pwms[i][1]]
+
 int pwm_init(void)
 {
     int fd;
@@ -34,11 +36,9 @@ int pwm_init(void)
         return -11;
     }
 
-    pru_addr = mmap(0, PRU_LEN, PROT_READ | PROT_WRITE, MAP_SHARED, fd, PRU0_ADDR);
-    if (MAP_FAILED == pru_addr) {
-        printf("Error: mmap failed!\n");
-        return -1;
-    }
+    pru = mmap(0, PRU_LEN, PROT_READ | PROT_WRITE, MAP_SHARED, fd, PRU0_ADDR);
+    ASSERT_PRU(pru);
+
     close(fd);
 
     return 0;
@@ -46,12 +46,8 @@ int pwm_init(void)
 
 int pwm_deinit(void)
 {
-    if (MAP_FAILED == pru_addr) {
-        printf("Invalid pru_addr!\n");
-        return -1;
-    }
-
-    if (munmap(pru_addr, PRU_LEN)) {
+    ASSERT_PRU(pru);
+    if (munmap(pru, PRU_LEN)) {
         printf("Error: munmap failed!\n");
         return -1;
     }
@@ -65,26 +61,14 @@ int pwm_deinit(void)
 int pwm_ctrl(uint32_t chs, uint32_t ctrl)
 {
     int i = 0;
-    pwm_t *pwm = NULL;
 
-    if (MAP_FAILED == pru_addr) {
-        printf("Invalid pru_addr!\n");
-        return -1;
-    }
-
+    ASSERT_PRU(pru);
     for (i=0; i<PWM_MAX_CHS; i++) {
         if (!(chs & (0x01<<i)))
             continue;
-    
-        if (0 == pwms[i][0]) {
-            pwm = (pwm_t*)(pru_addr+(PWM0_OFFSET>>2));
-        }
-        else {
-            pwm = (pwm_t*)(pru_addr+(PWM1_OFFSET>>2));
-        }
 
-        pwm[pwms[i][1]].ctrl = ctrl;
-        pwm[pwms[i][1]].count = 0;
+        PWM_CHS(i).ctrl = ctrl;
+        PWM_CHS(i).count = 0;
     }
 
     return 0;
@@ -93,25 +77,13 @@ int pwm_ctrl(uint32_t chs, uint32_t ctrl)
 int pwm_duty(uint32_t chs, uint32_t duty)
 {
     int i = 0;
-    pwm_t *pwm = NULL;
 
-    if (MAP_FAILED == pru_addr) {
-        printf("Invalid pru_addr!\n");
-        return -1;
-    }
-
+    ASSERT_PRU(pru);
     for (i=0; i<PWM_MAX_CHS; i++) {
         if (!(chs & (0x01<<i)))
             continue;
-    
-        if (0 == pwms[i][0]) {
-            pwm = (pwm_t*)(pru_addr+(PWM0_OFFSET>>2));
-        }
-        else {
-            pwm = (pwm_t*)(pru_addr+(PWM1_OFFSET>>2));
-        }
 
-        pwm[pwms[i][1]].duty = duty;
+        PWM_CHS(i).duty = duty;
     }
 
     return 0;
@@ -120,25 +92,13 @@ int pwm_duty(uint32_t chs, uint32_t duty)
 int pwm_peroid(uint32_t chs, uint32_t period)
 {
     int i = 0;
-    pwm_t *pwm = NULL;
 
-    if (MAP_FAILED == pru_addr) {
-        printf("Invalid pru_addr!\n");
-        return -1;
-    }
-
+    ASSERT_PRU(pru);
     for (i=0; i<PWM_MAX_CHS; i++) {
         if (!(chs & (0x01<<i)))
             continue;
-    
-        if (0 == pwms[i][0]) {
-            pwm = (pwm_t*)(pru_addr+(PWM0_OFFSET>>2));
-        }
-        else {
-            pwm = (pwm_t*)(pru_addr+(PWM1_OFFSET>>2));
-        }
 
-        pwm[pwms[i][1]].period = period;
+        PWM_CHS(i).period = period;
     }
 
     return 0;
