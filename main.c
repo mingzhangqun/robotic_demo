@@ -6,7 +6,7 @@ uint32_t select_chs(void)
     uint32_t chs = 0;
     char str[64];
     char *ptr = NULL;
-    printf("Please select pwm chs[0-13]:(0,1,2,3...)\n");
+    printf("Please select pwm chs[0-%d]:(0,1,2,3...)\n", PWM_MAX_CHS-1);
     fgets(str, sizeof(str), stdin);
     if ((str[0] == 'q') || (str[0] == 'Q'))
         return 0;
@@ -40,6 +40,8 @@ int main(int argc, char *argv[])
 
     pru_start(PATH_PRU0_0);
     pru_start(PATH_PRU0_1);
+    pru_start(PATH_PRU1_0);
+    pru_start(PATH_PRU1_1);
     pwm_init();
 
     chs = select_chs();
@@ -88,6 +90,8 @@ STOP:
     pwm_deinit();
     pru_stop(PATH_PRU0_0);
     pru_stop(PATH_PRU0_1);
+    pru_stop(PATH_PRU1_0);
+    pru_stop(PATH_PRU1_1);
 
     return 0;
 }

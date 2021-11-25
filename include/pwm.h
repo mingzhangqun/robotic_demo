@@ -13,11 +13,12 @@ typedef struct {
 
 
 #define PRU0_ADDR       0xb000000
+#define PRU1_ADDR       0xb100000
 #define PRU_LEN         0x80000
 #define PWM0_OFFSET     0x10000
 #define PWM1_OFFSET     0x10100
 
-#define PWM_MAX_CHS     14
+#define PWM_MAX_CHS     15
 #define PWM_CH0         (0x01 << 0)
 #define PWM_CH1         (0x01 << 1)
 #define PWM_CH2         (0x01 << 2)
