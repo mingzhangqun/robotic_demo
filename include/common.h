@@ -8,8 +8,11 @@
 #include <unistd.h>
 #include <string.h>
 #include <stdlib.h>
+#include <linux/input.h>
 
 #include "pwm.h"
 #include "sys.h"
+#include "kbd.h"
+#include "motor.h"
 
 #endif // __COMMON_H__
