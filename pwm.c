@@ -75,7 +75,7 @@ int pwm_deinit(void)
     }
 
     if (!ret) {
-        printf("Munmap succeeded!\n");
+        printf("munmap succeeded!\n");
     }
 
     return ret;
@@ -113,8 +113,10 @@ int pwm_ctrl(uint32_t chs, uint32_t ctrl)
             continue;
 
         pwm = pwm_get(i);
-        pwm->ctrl = ctrl;
-        pwm->count = 0;
+        if (pwm) {
+            pwm->ctrl = ctrl;
+            pwm->count = 0;
+        }
     }
 
     return 0;
@@ -130,7 +132,9 @@ int pwm_duty(uint32_t chs, uint32_t duty)
             continue;
 
         pwm = pwm_get(i);
-        pwm->duty = duty;
+        if (pwm) {
+            pwm->duty = duty;
+        }
     }
 
     return 0;
@@ -146,7 +150,9 @@ int pwm_peroid(uint32_t chs, uint32_t period)
             continue;
 
         pwm = pwm_get(i);
-        pwm->period = period;
+        if (pwm) {
+            pwm->period = period;
+        }
     }
 
     return 0;
