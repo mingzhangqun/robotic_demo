@@ -11,10 +11,15 @@ int run_cmd(const char *cmd, char *result, int len)
         return -1;
     }
 
-    fgets(result, len, fp);
+    if (result)
+        fgets(result, len, fp);
+
     pclose(fp);
 
-    return strlen(result);
+    if (result)
+        return strlen(result);
+
+    return 0;
 }
 
 
