@@ -165,7 +165,7 @@ int main(int argc, char *argv[])
                 printf("stop!\n\n");
             }
             else if (1 == ev.value) {
-                motor_duty = 1000;
+                motor_duty = MOTOR_PERIOD;
                 pwm_duty(MOTOR_CHS, motor_duty);
                 pwm_ctrl(MOTOR_CHS, 0x01);
                 motor_state(1);
@@ -191,7 +191,7 @@ int main(int argc, char *argv[])
                 printf("stop!\n\n");
             }
             else if (1 == ev.value) {
-                motor_duty = 1000;
+                motor_duty = MOTOR_PERIOD;
                 pwm_duty(MOTOR_CHS, motor_duty);
                 pwm_ctrl(MOTOR_CHS, 0x01);
                 motor_state(2);
