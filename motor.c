@@ -3,6 +3,10 @@
 
 int motor_init(void)
 {
+    run_cmd("echo 334 > /sys/class/gpio/unexport", NULL, 0);
+    run_cmd("echo 314 > /sys/class/gpio/unexport", NULL, 0);
+    run_cmd("echo 320 > /sys/class/gpio/unexport", NULL, 0);
+
     run_cmd("echo 334 > /sys/class/gpio/export", NULL, 0);
     run_cmd("echo 314 > /sys/class/gpio/export", NULL, 0);
     run_cmd("echo 320 > /sys/class/gpio/export", NULL, 0);

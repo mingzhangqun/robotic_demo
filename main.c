@@ -9,7 +9,7 @@
 
 #if (FUNC_SELECT == FUNC_CAR)
 #define MOTOR_PERIOD    3000
-#define MOTOR_CHS       (0x01<<0)
+#define MOTOR_CHS       (0x0F)
 
 #define SERVO_PERIOD    30000
 #define SERVO_CHS       (0x01<<4)
@@ -23,6 +23,10 @@ int main(int argc, char *argv[])
     int motor_duty = 0;
     int servo_duty = SERVO_DEF;
 
+    int start = 0;
+    int speed = 1;
+    motor_duty = (MOTOR_PERIOD/5)*speed;
+
     if (pru_start(PATH_PRU0_0) < 0)
         goto STOP;
     if (pru_start(PATH_PRU0_1) < 0)
@@ -32,6 +36,8 @@ int main(int argc, char *argv[])
     if (pru_start(PATH_PRU1_1) < 0)
         goto STOP;
     if (kbd_init() < 0)
+        goto STOP;
+    if (leds_init() < 0)
         goto STOP;
     if (pwm_init() < 0)
         goto STOP;
@@ -59,6 +65,27 @@ int main(int argc, char *argv[])
         }
 
         switch (ev.code) {
+        case BTN_1:
+            if (1 == ev.value) {
+                start = !start;
+                printf("start=%d\n", start);
+                motor_state(start);
+                pwm_ctrl(MOTOR_CHS, start);
+                leds_ctrl(start?speed:0);
+            }
+        break;
+
+        case BTN_2:
+            if (1 == ev.value) {
+                if (++speed >= 6) {
+                    speed = 1;
+                }
+                printf("start=%d, speed=%d\n", start, speed);
+                pwm_duty(MOTOR_CHS, (MOTOR_PERIOD/5)*speed);
+                leds_ctrl(speed);
+            }
+        break;
+
         case KEY_UP:
         case KEY_W:
             printf("up -- ");
@@ -156,6 +183,7 @@ int main(int argc, char *argv[])
 
 STOP:
     printf("Stopped!!!\n");
+    leds_deinit();
     motor_deinit();
     pwm_ctrl(PWM_ALL, 0x00);
     pwm_deinit();

@@ -27,7 +27,7 @@ export TOPDIR
 
 TARGET := robotic
 
-obj-y += main.o pwm.o sys.o kbd.o motor.o
+obj-y += main.o pwm.o sys.o kbd.o motor.o leds.o
 #obj-y += display/
 
 all : 

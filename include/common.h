@@ -14,5 +14,6 @@
 #include "sys.h"
 #include "kbd.h"
 #include "motor.h"
+#include "leds.h"
 
 #endif // __COMMON_H__
