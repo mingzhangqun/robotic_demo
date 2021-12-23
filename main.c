@@ -11,11 +11,13 @@
 #define MOTOR_CHS       (0x0F)
 
 #define SERVO_PERIOD    30000
-#define SERVO_CHS       (0x3FF<<4)
+#define SERVO_CHS       (0x01<<4)
 #define SERVO_DEF       2100
 #define SERVO_MAX       2600
 #define SERVO_MIN       1600
 
+#define LEDS_PERIOD    100
+#define LEDS_CHS       (0x01FF<<5)
 
 static pthread_t tid_key;
 static pthread_t tid_remoter;
@@ -28,6 +30,7 @@ static void *thread_key(void *arg)
     int speed = 1;
     int fd = kbd_init(KBD_KEY_PATH);
 
+    printf("%s\n", __func__);
     if (fd < 0) {
         printf("kbd_init failed: %s\n", KBD_KEY_PATH);
         return 0;
@@ -79,16 +82,23 @@ static void *thread_remoter(void *arg)
     struct input_event ev;
     int motor_duty = 0;
     int servo_duty = SERVO_DEF;
-    int fd = kbd_init(KBD_REMOTER_PATH);
+    int fd = 0;//kbd_init(KBD_REMOTER_PATH);
 
-    if (fd < 0) {
+    printf("%s\n", __func__);
+
+    for (;;) {
+        fd = kbd_init(KBD_REMOTER_PATH);
+        if (fd > 0)
+            break;
         printf("kbd_init failed: %s\n", KBD_REMOTER_PATH);
-        return 0;
+        sleep(2);
     }
 
     for (;;) {
         if (kbd_read(fd, &ev) < 0) {
             printf("kbd_read failed!\n");
+            sleep(2);
+            fd = kbd_init(KBD_REMOTER_PATH);
             continue;
         }
 
@@ -201,6 +211,8 @@ int main(int argc, char *argv[])
 {
     struct input_event ev;
 
+    printf("robotic %s\n", __func__);
+
     if (pru_start(PATH_PRU0_0) < 0)
         goto STOP;
     if (pru_start(PATH_PRU0_1) < 0)
@@ -225,6 +237,11 @@ int main(int argc, char *argv[])
     pwm_peroid(SERVO_CHS, SERVO_PERIOD);
     pwm_ctrl(SERVO_CHS, 0x1);
 
+    // LEDS
+    pwm_duty(LEDS_CHS, LEDS_PERIOD/2);
+    pwm_peroid(LEDS_CHS, LEDS_PERIOD);
+    pwm_ctrl(LEDS_CHS, 0x1);
+
     if (pthread_create(&tid_key, NULL, thread_key, NULL) < 0) {
 		printf("Failed: create thread_key!\n");
         goto STOP;
@@ -242,9 +259,9 @@ int main(int argc, char *argv[])
         }
 
         if (start) {
-            pwm_duty(SERVO_CHS, SERVO_MIN);
+            pwm_duty(LEDS_CHS, 0);
             sleep(2);
-            pwm_duty(SERVO_CHS, SERVO_MAX);
+            pwm_duty(LEDS_CHS, LEDS_PERIOD/2);
             sleep(2);
         }
     }

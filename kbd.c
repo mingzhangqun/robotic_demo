@@ -29,8 +29,6 @@ int kbd_deinit(int fd)
 
 int kbd_read(int fd, struct input_event *ev)
 {
-    
-
     if (sizeof(*ev) == read(fd, ev, sizeof(*ev))) {
         return 0;
     }
