@@ -18,7 +18,7 @@ CFLAGS := -Werror -O2 -g
 CFLAGS += -I $(shell pwd)/include
 
 #LDFLAGS := -lm -lfreetype -lts -lpthread -ljpeg
-#LDFLAGS := -lm -lfreetype -lpthread
+LDFLAGS := -pthread
 
 export CFLAGS LDFLAGS
 
@@ -27,7 +27,7 @@ export TOPDIR
 
 TARGET := robotic
 
-obj-y += main.o pwm.o sys.o kbd.o motor.o
+obj-y += main.o pwm.o sys.o kbd.o motor.o leds.o
 #obj-y += display/
 
 all : 

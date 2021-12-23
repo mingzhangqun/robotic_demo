@@ -1,37 +1,37 @@
 #include "kbd.h"
 
 
-int kdb_fd = -1;
+//int kdb_fd = -1;
 
 
-int kbd_init(void)
+int kbd_init(char *path)
+{
+    int ret = 0;
+    int fd = -1;
+
+    fd = open(path, O_RDONLY);
+    
+    return fd;
+}
+
+
+int kbd_deinit(int fd)
 {
     int ret = 0;
 
-    kdb_fd = open(KBD_PATH, O_RDONLY);
-    if (kdb_fd <= 0) {
-        ret = -1;
+    if (fd > 0) {
+        ret = close(fd);
     }
 
     return ret;
 }
 
 
-int kbd_deinit(void)
+int kbd_read(int fd, struct input_event *ev)
 {
-    int ret = 0;
+    
 
-    if (kdb_fd > 0) {
-        ret = close(kdb_fd);
-    }
-
-    return ret;
-}
-
-
-int kbd_read(struct input_event *ev)
-{
-    if (sizeof(*ev) == read(kdb_fd, ev, sizeof(*ev))) {
+    if (sizeof(*ev) == read(fd, ev, sizeof(*ev))) {
         return 0;
     }
 
