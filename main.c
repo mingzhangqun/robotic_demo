@@ -7,17 +7,19 @@
 
 
 #if (FUNC_SELECT == FUNC_CAR)
-#define MOTOR_PERIOD    3000
+#define MOTOR_PERIOD    150//3000
 #define MOTOR_CHS       (0x0F)
 
 #define SERVO_PERIOD    30000
 #define SERVO_CHS       (0x01<<4)
-#define SERVO_DEF       2100
-#define SERVO_MAX       2600
-#define SERVO_MIN       1600
+#define SERVO_DEF       1700
+#define SERVO_MAX       2050
+#define SERVO_MIN       1350
 
-#define LEDS_PERIOD    100
-#define LEDS_CHS       (0x01FF<<5)
+#define LEDS_PERIOD     100
+#define LEDS_CHS        (0x01FF<<5)
+
+#define MAX_SPEED       5
 
 static pthread_t tid_key;
 static pthread_t tid_remoter;
@@ -27,7 +29,7 @@ static int start = 0;
 static void *thread_key(void *arg)
 {
     struct input_event ev;
-    int speed = 1;
+    int speed = 0;
     int fd = kbd_init(KBD_KEY_PATH);
 
     printf("%s\n", __func__);
@@ -55,19 +57,19 @@ static void *thread_key(void *arg)
                     pwm_ctrl(MOTOR_CHS, start);
                     leds_ctrl(start?speed:0);
                     if (start) {
-                        speed = 1;
-                        pwm_duty(MOTOR_CHS, (MOTOR_PERIOD/5)*speed);
+                        speed = 0;
+                        pwm_duty(MOTOR_CHS, (MOTOR_PERIOD/5)*(MAX_SPEED-speed));
                     }
                 }
             break;
 
             case BTN_2:
                 if (1 == ev.value) {
-                    if (++speed >= 6) {
-                        speed = 1;
+                    if (++speed >= (MAX_SPEED+1)) {
+                        speed = 0;
                     }
-                    printf("start=%d, speed=%d\n", start, speed);
-                    pwm_duty(MOTOR_CHS, (MOTOR_PERIOD/5)*speed);
+                    printf("start=%d, speed=%d\n", start, (MAX_SPEED-speed));
+                    pwm_duty(MOTOR_CHS, (MOTOR_PERIOD/5)*(MAX_SPEED-speed));
                     leds_ctrl(speed);
                 }
             break;
@@ -112,22 +114,22 @@ static void *thread_remoter(void *arg)
             case KEY_W:
                 printf("up -- ");
                 if (0 == ev.value) {
-                    motor_duty = 0;
+                    motor_duty = MOTOR_PERIOD;
                     pwm_duty(MOTOR_CHS, motor_duty);
                     pwm_ctrl(MOTOR_CHS, 0x0);
                     motor_state(0);
                     printf("stop!\n\n");
                 }
                 else if (1 == ev.value) {
-                    motor_duty = MOTOR_PERIOD;
+                    motor_duty = 0;
                     pwm_duty(MOTOR_CHS, motor_duty);
                     pwm_ctrl(MOTOR_CHS, 0x01);
                     motor_state(1);
                     printf("run = %d\n", motor_duty);
                 }
                 else if (2 == ev.value) {
-                    if (motor_duty < MOTOR_PERIOD) {
-                        motor_duty += 200;
+                    if (motor_duty > 0) {
+                        motor_duty -= 200;
                     }
                     pwm_duty(MOTOR_CHS, motor_duty);
                     printf("burst = %d\n", motor_duty);
@@ -138,22 +140,22 @@ static void *thread_remoter(void *arg)
             case KEY_S:
                 printf("dn -- ");
                 if (0 == ev.value) {
-                    motor_duty = 0;
+                    motor_duty = MOTOR_PERIOD;
                     pwm_duty(MOTOR_CHS, motor_duty);
                     pwm_ctrl(MOTOR_CHS, 0x0);
                     motor_state(0);
                     printf("stop!\n\n");
                 }
                 else if (1 == ev.value) {
-                    motor_duty = MOTOR_PERIOD;
+                    motor_duty = 0;
                     pwm_duty(MOTOR_CHS, motor_duty);
                     pwm_ctrl(MOTOR_CHS, 0x01);
                     motor_state(2);
                     printf("run = %d\n", motor_duty);
                 }
                 else if (2 == ev.value) {
-                    if (motor_duty < MOTOR_PERIOD) {
-                        motor_duty += 200;
+                    if (motor_duty > 0) {
+                        motor_duty -= 200;
                     }
                     pwm_duty(MOTOR_CHS, motor_duty);
                     printf("burst = %d\n", motor_duty);
@@ -172,7 +174,7 @@ static void *thread_remoter(void *arg)
                     /*if (servo_duty < SERVO_MAX) {
                         servo_duty += 100;
                     }*/
-                    servo_duty = SERVO_MAX;
+                    servo_duty = SERVO_MIN;
                     pwm_duty(SERVO_CHS, servo_duty);
                     printf("burst = %d\n", servo_duty);
                 }
@@ -191,7 +193,7 @@ static void *thread_remoter(void *arg)
                     /*if (servo_duty > SERVO_MIN) {
                         servo_duty -= 100;
                     }*/
-                    servo_duty = SERVO_MIN;
+                    servo_duty = SERVO_MAX;
                     pwm_duty(SERVO_CHS, servo_duty);
                     printf("burst = %d\n", servo_duty);
                 }
@@ -228,7 +230,7 @@ int main(int argc, char *argv[])
 
     // motor
     motor_init();
-    pwm_duty(MOTOR_CHS, MOTOR_PERIOD/5);
+    pwm_duty(MOTOR_CHS, MOTOR_PERIOD);
     pwm_peroid(MOTOR_CHS, MOTOR_PERIOD);
     pwm_ctrl(MOTOR_CHS, 0x0);
 
