@@ -3,7 +3,7 @@
 
 #define FUNC_CHS        0
 #define FUNC_CAR        1
-#define FUNC_SELECT     FUNC_CAR
+#define FUNC_SELECT     FUNC_CHS
 
 
 
